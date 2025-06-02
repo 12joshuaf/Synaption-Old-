@@ -22,6 +22,6 @@ Optimize and add functionality
 
 _______________________________________________________________________________________________________________________________________________________________________________________
 
-Currewnt Progress, Phase 1 25% complete, nodes are functioning, currently woring on building nueral nets
+Current Progress, Phase 1 25% complete, nodes are functioning, currently woring on building nueral nets
 
 
