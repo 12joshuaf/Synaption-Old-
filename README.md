@@ -1,7 +1,6 @@
 # Synaption
 Educational Library for Machine Learning, to be added as a Python Module
 
-
 In May of 2025, I began a journey teaching a machine learning course at SUNY Purchase for gifted highschoolers. While I was impressed with the course, the toold given troubled me. 
 The basis of the course was to teach the students the fundamentals of machine learning using PyTorch. While this model makes sense in a college setting, with students having spent years
 learning python. However in a highschool setting, these students need more time to hone their skills with python before being intruduced to PyTorch or TensorFLow. Thus I begen the development 
