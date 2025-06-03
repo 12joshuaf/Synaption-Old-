@@ -11,16 +11,20 @@ ________________________________________________________________________________
 
 
 Phase 1: 
-Write a C++ library for creating Machine Learning algorithms such as convolutional neural nets, and perceptrons, with functions such as built in warnings for learning saturation.
+Write a C++ library for creating Machine Learning algorithms such as convolutional neural nets with functions such as built in warnings for learning saturation.
 
 Phase 2:
 Add the C++ library into a python module that can be imported onto any machine
 
 Phase 3:
 Optimize and add functionality
+PCA
+S-SVM
+H-SVM
+Linprog
 
 _______________________________________________________________________________________________________________________________________________________________________________________
 
-Current Progress, Phase 1 25% complete, nodes are functioning, currently woring on building nueral nets
+Current Progress, Phase 1 30% complete, nodes are functioning, tensors functioning, currently woring on building nueral nets
 
 
