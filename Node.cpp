@@ -72,6 +72,7 @@ namespace nn {
             }
             bias = distr(eng);
         }
+
     }
 
 
@@ -80,6 +81,23 @@ namespace nn {
         std::cout << "Destroying Node: " << node_name << " in " << layer_name << "\n";
     }
 
+
+    void Node::point_node(std::vector<Node*> node_vector) {
+        this->points_to = node_vector;
+        for (Node* n : node_vector) {
+            n->inputs_from.push_back(this);
+        }
+    }
+
+    void Node::point_node(Node* n) {
+        this->points_to.push_back(n);
+        n->inputs_from.push_back(this);
+    }
+
+
+    void Node::input_nodes(std::vector<Node*> node_vector) {
+        this->inputs_from = node_vector;
+    }
 
     //functions for backpropogation and activaton
     double Node::get_last_delta() const {
@@ -129,20 +147,44 @@ namespace nn {
         }
     }
 
-
-    double Node::activate(const std::vector<double>& inputs) {
-        if (inputs.size() != weights.size()) {
+    double Node::activate() {
+        if (this->inputs.size() != this->weights.size()) {
             throw std::invalid_argument("Input size does not match number of weights for node: " + node_name);
         }
-
         double sum = 0.0;
-        for (size_t i = 0; i < inputs.size(); ++i) {
-            sum += inputs[i] * weights[i];
+        for (size_t i = 0; i < this->inputs.size(); ++i) {
+            sum += this->inputs[i] * this->weights[i];
         }
         sum += bias;
 
         last_input_sum = sum;
         last_output = apply_activation(sum);
+        for (Node* n : this->points_to) {
+            n->inputs.push_back(last_output);
+        }
+
+        return last_output;
+  
+
+    }
+
+
+    double Node::activate(const std::vector<double>& inputs) {
+        if (inputs.size() != this->weights.size()) {
+            throw std::invalid_argument("Input size does not match number of weights for node: " + node_name);
+        }
+
+        double sum = 0.0;
+        for (size_t i = 0; i < inputs.size(); ++i) {
+            sum += inputs[i] * this->weights[i];
+        }
+        sum += bias;
+
+        last_input_sum = sum;
+        last_output = apply_activation(sum);
+        for (Node* n : this->points_to) {
+            n->inputs.push_back(last_output);
+        }
         return last_output;
     }
 
