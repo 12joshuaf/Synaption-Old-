@@ -60,11 +60,19 @@ namespace nn {
         std::vector<double> weights; //weights for inputs w0 -> wn
         double bias; //bias for activation
 
+        std::vector<Node*> points_to; //activates to
+        std::vector<Node*> inputs_from; //gets inputs from
+        std::vector<double> inputs;
+
 
         //constructor and destructor
         Node(int num_inputs, ActivationFunction activation_input, const std::string& layer,
             const std::string& name, NodeType type);
         ~Node();
+
+        void point_node(std::vector<Node*> node_vector);
+        void point_node(Node* node);
+        void input_nodes(std::vector<Node*> node_vector);
 
 
         //functions for backpropogation
@@ -76,6 +84,7 @@ namespace nn {
 
 
         //functions for training
+        double activate();
         double activate(const std::vector<double>& inputs);
         void backpropagate(double error, double learning_rate, const std::vector<double>& inputs);
         void safe_backpropagate(double error, double learning_rate, const std::vector<double>& inputs); //safe backpropogate checks for saturation but has extra time complexity
