@@ -62,7 +62,8 @@ namespace nn {
 
         std::vector<Node*> points_to; //activates to
         std::vector<Node*> inputs_from; //gets inputs from
-        std::vector<double> inputs;
+        std::vector<double> inputs;//inputs for activation
+        std::vector<double> back_inputs;//inputs for backpropogation
 
 
         //constructor and destructor
@@ -86,9 +87,17 @@ namespace nn {
         //functions for training
         double activate();
         double activate(const std::vector<double>& inputs);
-        void backpropagate(double error, double learning_rate, const std::vector<double>& inputs);
-        void safe_backpropagate(double error, double learning_rate, const std::vector<double>& inputs); //safe backpropogate checks for saturation but has extra time complexity
         void print_parameters() const;
+
+
+        // Performs backpropagation
+
+        // Safe backpropagation with saturation detection
+        void backpropagate(double target, double learning_rate, int saturation_threshold);// chekcs for saturation in output nodes
+        void backpropagate(double learning_rate, int saturation_threshold);// checks for saturaton in hidden nodes
+
+
+
     };
 
 } // namespace nn
