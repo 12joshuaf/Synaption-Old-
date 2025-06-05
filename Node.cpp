@@ -2,8 +2,7 @@
 
 namespace nn {
 
-
-    //functions for activation
+    // Activation functions
     double sigmoid(double x) {
         return 1.0 / (1.0 + std::exp(-x));
     }
@@ -42,13 +41,11 @@ namespace nn {
         return x > 0 ? 1.0 : 0.0;
     }
 
-    //step function hss no derrivtive, but perceptrons are supported. If step function is used in neural net, the user will be warned
     void warn_step_derivative() {
         std::cerr << "Warning: Step function has no derivative, only useful in perceptrons.\n";
     }
 
-
-    //constructor
+    // Constructor
     Node::Node(int num_inputs, ActivationFunction activation_input, const std::string& layer,
         const std::string& name, NodeType type)
         : activation(activation_input), layer_name(layer), node_name(name), node_type(type)
@@ -72,15 +69,12 @@ namespace nn {
             }
             bias = distr(eng);
         }
-
     }
 
-
-    //destructor
+    // Destructor
     Node::~Node() {
         std::cout << "Destroying Node: " << node_name << " in " << layer_name << "\n";
     }
-
 
     void Node::point_node(std::vector<Node*> node_vector) {
         this->points_to = node_vector;
@@ -94,12 +88,10 @@ namespace nn {
         n->inputs_from.push_back(this);
     }
 
-
     void Node::input_nodes(std::vector<Node*> node_vector) {
         this->inputs_from = node_vector;
     }
 
-    //functions for backpropogation and activaton
     double Node::get_last_delta() const {
         return last_delta;
     }
@@ -140,7 +132,7 @@ namespace nn {
         case ActivationFunction::LeakyReLU:
             return leaky_relu_derivative(x);
         case ActivationFunction::Step:
-            std::cerr << "Warning: Step function has no defined derivative, only useful for perceptrons\n";
+            warn_step_derivative();
             return 0.0;
         default:
             throw std::runtime_error("Unknown activation function (derivative)!");
@@ -148,96 +140,119 @@ namespace nn {
     }
 
     double Node::activate() {
-        if (this->inputs.size() != this->weights.size()) {
-            throw std::invalid_argument("Input size does not match number of weights for node: " + node_name);
-        }
-        double sum = 0.0;
-        for (size_t i = 0; i < this->inputs.size(); ++i) {
-            sum += this->inputs[i] * this->weights[i];
-        }
-        sum += bias;
-
-        last_input_sum = sum;
-        last_output = apply_activation(sum);
-        for (Node* n : this->points_to) {
-            n->inputs.push_back(last_output);
-        }
-
-        return last_output;
-  
-
-    }
-
-
-    double Node::activate(const std::vector<double>& inputs) {
-        if (inputs.size() != this->weights.size()) {
+        if (inputs.size() != weights.size()) {
             throw std::invalid_argument("Input size does not match number of weights for node: " + node_name);
         }
 
         double sum = 0.0;
         for (size_t i = 0; i < inputs.size(); ++i) {
-            sum += inputs[i] * this->weights[i];
+            sum += inputs[i] * weights[i];
         }
         sum += bias;
 
         last_input_sum = sum;
         last_output = apply_activation(sum);
-        for (Node* n : this->points_to) {
+
+        for (Node* n : points_to) {
             n->inputs.push_back(last_output);
         }
+
         return last_output;
     }
 
-    void Node::backpropagate(double error, double learning_rate, const std::vector<double>& inputs) {
-        double derivative = activation_derivative(last_input_sum);
-        double delta = error * derivative;
-        last_delta = delta;
-
-        for (size_t i = 0; i < weights.size(); ++i) {
-            weights[i] -= learning_rate * delta * inputs[i];
+    double Node::activate(const std::vector<double>& inputs) {
+        if (inputs.size() != weights.size()) {
+            throw std::invalid_argument("Input size does not match number of weights for node: " + node_name);
         }
-        bias -= learning_rate * delta;
+
+        double sum = 0.0;
+        for (size_t i = 0; i < inputs.size(); ++i) {
+            sum += inputs[i] * weights[i];
+        }
+        sum += bias;
+
+        last_input_sum = sum;
+        last_output = apply_activation(sum);
+
+        for (Node* n : points_to) {
+            n->inputs.push_back(last_output);
+        }
+
+        return last_output;
     }
 
-
-    //safe backpropogation checks for saturation, but has extra time complexity
-    void Node::safe_backpropagate(double error, double learning_rate, const std::vector<double>& inputs) {
-        double previous_bias = bias;
-        std::vector<double> previous_weights = weights;
-
-        double derivative = activation_derivative(last_input_sum);
-        double delta = error * derivative;
-        last_delta = delta;
-
-        for (size_t i = 0; i < weights.size(); ++i) {
-            weights[i] -= learning_rate * delta * inputs[i];
-        }
-        bias -= learning_rate * delta;
-
-        bool unchanged = true;
-        const double epsilon = 1e-9;
-
-        for (size_t i = 0; i < weights.size(); ++i) {
-            if (std::abs(weights[i] - previous_weights[i]) > epsilon) {
-                unchanged = false;
-                break;
-            }
-        }
-        if (std::abs(bias - previous_bias) > epsilon) {
-            unchanged = false;
+    // Safe backpropagation for output nodes
+    void Node::backpropagate(double target, double learning_rate, int saturation_threshold) {
+        if (node_type != NodeType::Output) {
+            throw std::logic_error("safe_backpropagate(target) should only be called on output nodes.");
         }
 
-        if (unchanged) {
+        double error = target - last_output;
+        last_delta = error * activation_derivative(last_input_sum);
+
+        if (std::abs(last_delta) < 1e-6) {
             saturation_count++;
-            if (saturation_count > 9) {
-                std::cout << "Warning! Possible Saturation\n";
+            if (saturation_count >= saturation_threshold) {
+                std::cerr << "Warning: Node '" << node_name
+                    << "' in layer '" << layer_name
+                    << "' appears saturated (delta = 0 for "
+                    << saturation_threshold << " steps).\n";
                 saturation_count = 0;
-                print_parameters();
             }
+        }
+        else {
+            saturation_count = 0;
+        }
+
+        for (size_t i = 0; i < weights.size(); ++i) {
+            weights[i] += learning_rate * last_delta * inputs[i];
+        }
+        bias += learning_rate * last_delta;
+
+        for (size_t i = 0; i < inputs_from.size(); ++i) {
+            inputs_from[i]->back_inputs.push_back(last_delta * weights[i]);
         }
     }
 
-    //for debugging
+    // Safe backpropagation for hidden nodes
+    void Node::backpropagate(double learning_rate, int saturation_threshold) {
+        if (node_type != NodeType::Hidden) {
+            throw std::logic_error("safe_backpropagate() should only be called on hidden nodes.");
+        }
+
+        double sum = 0.0;
+        for (double val : back_inputs) {
+            sum += val;
+        }
+
+        last_delta = sum * activation_derivative(last_input_sum);
+
+        if (std::abs(last_delta) < 1e-6) {
+            saturation_count++;
+            if (saturation_count >= saturation_threshold) {
+                std::cerr << "Warning: Node '" << node_name
+                    << "' in layer '" << layer_name
+                    << "' appears saturated (delta = 0 for "
+                    << saturation_threshold << " steps).\n";
+                saturation_count = 0;
+            }
+        }
+        else {
+            saturation_count = 0;
+        }
+
+        for (size_t i = 0; i < weights.size(); ++i) {
+            weights[i] += learning_rate * last_delta * inputs[i];
+        }
+        bias += learning_rate * last_delta;
+
+        for (size_t i = 0; i < inputs_from.size(); ++i) {
+            inputs_from[i]->back_inputs.push_back(last_delta * weights[i]);
+        }
+
+        back_inputs.clear();
+    }
+
     void Node::print_parameters() const {
         std::cout << std::fixed << std::setprecision(10);
         std::cout << "Node: " << node_name << " in " << layer_name << "\nWeights: ";
