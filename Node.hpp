@@ -9,7 +9,7 @@
 #include <iomanip>
 
 namespace nn {
-    //activation enums
+
     enum class ActivationFunction {
         Sigmoid,
         ReLU,
@@ -17,13 +17,12 @@ namespace nn {
         LeakyReLU,
         Step
     };
-    //node types for building neural nets
+
     enum class NodeType {
         Hidden,
         Output
     };
 
-    // Activation functions
     double sigmoid(double x);
     double sigmoid_derivative(double x);
     double relu(double x);
@@ -37,36 +36,32 @@ namespace nn {
 
     class Node {
     private:
-        ActivationFunction activation; //type of activation to be used from enum
-        NodeType node_type; //hidde or output from enum
+        ActivationFunction activation;
+        NodeType node_type;
 
-        std::string layer_name; //name of layer for debbuing nn
-        std::string node_name; //name of node for debugging nn
+        std::string layer_name;
+        std::string node_name;
 
-        int saturation_count = 0; //member for detecting learning saturation
+        int saturation_count = 0;
 
-
-        //members for backpropogation
         double last_input_sum = 0.0;
         double last_delta = 0.0;
         double last_output = 0.0;
 
+        std::vector<double> inputs_snapshot; // NEW: Inputs at time of activation
 
-        //functions for activation and backpropogation using activation functions from enum
         double apply_activation(double x) const;
         double activation_derivative(double x) const;
 
     public:
-        std::vector<double> weights; //weights for inputs w0 -> wn
-        double bias; //bias for activation
+        std::vector<double> weights;
+        double bias;
 
-        std::vector<Node*> points_to; //activates to
-        std::vector<Node*> inputs_from; //gets inputs from
-        std::vector<double> inputs;//inputs for activation
-        std::vector<double> back_inputs;//inputs for backpropogation
+        std::vector<Node*> points_to;
+        std::vector<Node*> inputs_from;
+        std::vector<double> inputs;
+        std::vector<double> back_inputs;
 
-
-        //constructor and destructor
         Node(int num_inputs, ActivationFunction activation_input, const std::string& layer,
             const std::string& name, NodeType type);
         ~Node();
@@ -75,31 +70,16 @@ namespace nn {
         void point_node(Node* node);
         void input_nodes(std::vector<Node*> node_vector);
 
-
-        //functions for backpropogation
         double get_last_delta() const;
         double get_last_output() const;
-
-        //returns weights for saving nn
         std::vector<double> get_weights() const;
 
-
-        //functions for training
         double activate();
         double activate(const std::vector<double>& inputs);
         void print_parameters() const;
 
-
-        // Performs backpropagation
-
-        // Safe backpropagation with saturation detection
-        void backpropagate(double target, double learning_rate, int saturation_threshold);// chekcs for saturation in output nodes
-        void backpropagate(double learning_rate, int saturation_threshold);// checks for saturaton in hidden nodes
-
-
-
+        void backpropagate(double target, double learning_rate, int saturation_threshold);
+        void backpropagate(double learning_rate, int saturation_threshold);
     };
 
 } // namespace nn
-
-
