@@ -1,71 +1,40 @@
 #include "Node.hpp"
-#include "Tensor.hpp"
 
 int main() {
     using namespace nn;
 
-    // Create two nodes: input and output
-    Node input_node(
-        2,                          // 2 inputs
-        ActivationFunction::ReLU,  // Activation function
-        "InputLayer",              // Layer name
-        "InputNode1",              // Node name
-        NodeType::Hidden           // Node type
-    );
-
-    Node output_node(
-        1,                          // 1 input (output of input_node)
-        ActivationFunction::Sigmoid, // Activation function
-        "OutputLayer",              // Layer name
-        "OutputNode1",              // Node name
-        NodeType::Output            // Node type
-    );
-
-    // Connect the input node to the output node
+    Node input_node(2, ActivationFunction::ReLU, "InputLayer", "InputNode1", NodeType::Hidden);
+    Node output_node(1, ActivationFunction::Sigmoid, "OutputLayer", "OutputNode1", NodeType::Output);
 
     input_node.point_node(&output_node);
 
-    // Feed dummy input data into input_node
     std::vector<double> dummy_input = { 0.5, -0.2 };
+    double learning_rate = 0.5;
+    int saturation_threshold = 10;
 
-
-
-
-    // Set input_node inputs and activate
     input_node.inputs = dummy_input;
-
     input_node.print_parameters();
     output_node.print_parameters();
 
     std::cout << '\n';
 
+    double out1 = input_node.activate();
+    std::cout << "Output of InputNode: " << out1 << '\n';
 
-    double input_output = input_node.activate();
+    double input_to_output = output_node.inputs[0];
+    std::cout << "Input to OutputNode: " << input_to_output << '\n';
 
-    std::cout << "Output of InputNode: " << input_output << '\n';
+    double final_output = output_node.activate();
+    std::cout << "Final output: " << final_output << "\n\n";
 
-    double input2 = output_node.inputs[0];
+    output_node.backpropagate(1.0, learning_rate, saturation_threshold);
+    input_node.backpropagate(learning_rate, saturation_threshold);
 
-    std::cout << "Input of outputnode: " << input2 <<  '\n';
-
-    double final_activate = output_node.activate();
-
-    std::cout << "Node activation: " << final_activate << std::endl;
-
-
-    output_node.backpropagate(1,0.5,10);
-    input_node.backpropagate(.5, 10);
-
-
-    input_node.backpropagate(.5, 10);
-
-    std::cout << '\n';
-
+    std::cout << "\nAfter Backpropagation:\n";
     input_node.print_parameters();
     output_node.print_parameters();
 
-
-    std::cout << "Press any key to continue\n";
+    std::cout << "Press Enter to exit.\n";
     std::cin.get();
     return 0;
 }
