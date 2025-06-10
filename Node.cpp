@@ -1,5 +1,7 @@
 #include "Node.hpp"
 
+
+//activation functions, and their derrivativies
 namespace nn {
 
     double sigmoid(double x) {
@@ -44,6 +46,8 @@ namespace nn {
         std::cerr << "Warning: Step function has no usable derivative.\n";
     }
 
+
+    //constructor for Node, randomly set weights and bias
     Node::Node(int num_inputs, ActivationFunction activation_input, const std::string& layer,
         const std::string& name, NodeType type)
         : activation(activation_input), layer_name(layer), node_name(name), node_type(type)
@@ -65,15 +69,21 @@ namespace nn {
         }
     }
 
+
+    //destructor
     Node::~Node() {
         std::cout << "Destroying Node: " << node_name << " in " << layer_name << "\n";
     }
 
+
+    //point the activation to other nodes for forward phase
     void Node::point_node(std::vector<Node*> node_vector) {
         points_to = node_vector;
         for (Node* n : node_vector) n->inputs_from.push_back(this);
     }
 
+
+    //point the activation to one node
     void Node::point_node(Node* n) {
         points_to.push_back(n);
         n->inputs_from.push_back(this);
@@ -87,6 +97,8 @@ namespace nn {
     double Node::get_last_output() const { return last_output; }
     std::vector<double> Node::get_weights() const { return weights; }
 
+
+    //activates with correct function
     double Node::apply_activation(double x) const {
         switch (activation) {
         case ActivationFunction::Sigmoid: return sigmoid(x);
@@ -109,6 +121,7 @@ namespace nn {
         }
     }
 
+    //multipliesa inputs by bias, adds weight
     double Node::activate() {
         if (inputs.size() != weights.size()) {
             throw std::invalid_argument("Input size does not match number of weights.");
@@ -126,6 +139,7 @@ namespace nn {
         return last_output;
     }
 
+    //activates with given inputs as arguments
     double Node::activate(const std::vector<double>& new_inputs) {
         if (new_inputs.size() != weights.size()) {
             throw std::invalid_argument("Input size mismatch.");
@@ -134,6 +148,10 @@ namespace nn {
         return activate();
     }
 
+
+    //backpropogation differs for input and output layers
+
+    //backpropogation for output node
     void Node::backpropagate(double target, double learning_rate, int saturation_threshold) {
         if (node_type != NodeType::Output) {
             throw std::logic_error("Only output nodes should receive targets.");
@@ -160,6 +178,8 @@ namespace nn {
         }
     }
 
+
+    //backpropogation for hidden node
     void Node::backpropagate(double learning_rate, int saturation_threshold) {
         if (node_type != NodeType::Hidden) {
             throw std::logic_error("Hidden nodes only for this method.");
@@ -189,6 +209,8 @@ namespace nn {
         back_inputs.clear();
     }
 
+
+    //print parameters for the node
     void Node::print_parameters() const {
         std::cout << std::fixed << std::setprecision(10);
         std::cout << "Node: " << node_name << " in " << layer_name << "\nWeights: ";
