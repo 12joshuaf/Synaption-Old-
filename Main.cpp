@@ -1,13 +1,17 @@
 #include "Node.hpp"
+//example code for building a two node algorithm
 
 int main() {
     using namespace nn;
 
+    //create two nodes
     Node input_node(2, ActivationFunction::ReLU, "InputLayer", "InputNode1", NodeType::Hidden);
     Node output_node(1, ActivationFunction::Sigmoid, "OutputLayer", "OutputNode1", NodeType::Output);
 
+    //connect the two nodes together
     input_node.point_node(&output_node);
 
+    //dummy data, add tensors later
     std::vector<double> dummy_input = { 0.5, -0.2 };
     double learning_rate = 0.5;
     int saturation_threshold = 10;
@@ -18,6 +22,8 @@ int main() {
 
     std::cout << '\n';
 
+
+    //training the two nodes
     double out1 = input_node.activate();
     std::cout << "Output of InputNode: " << out1 << '\n';
 
