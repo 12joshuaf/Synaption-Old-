@@ -1,46 +1,52 @@
-#include "Node.hpp"
-//example code for building a two node algorithm
+#include <iostream>
+#include "Layer.hpp"
+
+using namespace nn;
 
 int main() {
-    using namespace nn;
+    // Network architecture
+    const int input_size = 5;                // Example input size
+    const int hidden_layer_size = 10;
+    const int num_hidden_layers = 3;
+    const int output_size = 1;
 
-    //create two nodes
-    Node input_node(2, ActivationFunction::ReLU, "InputLayer", "InputNode1", NodeType::Hidden);
-    Node output_node(1, ActivationFunction::Sigmoid, "OutputLayer", "OutputNode1", NodeType::Output);
+    // Example activation function (replace with your actual enum or function)
+    ActivationFunction activation = ActivationFunction::Sigmoid;
 
-    //connect the two nodes together
-    input_node.point_node(&output_node);
+    // Create layers
+    std::vector<Layer> network;
 
-    //dummy data, add tensors later
-    std::vector<double> dummy_input = { 0.5, -0.2 };
-    double learning_rate = 0.5;
-    int saturation_threshold = 10;
+    // First hidden layer (connected to input)
+    network.emplace_back(hidden_layer_size, input_size, activation, "Hidden_0", NodeType::Hidden);
 
-    input_node.inputs = dummy_input;
-    input_node.print_parameters();
-    output_node.print_parameters();
+    // Additional hidden layers
+    for (int i = 1; i < num_hidden_layers; ++i) {
+        network.emplace_back(hidden_layer_size, hidden_layer_size, activation, "Hidden_" + std::to_string(i), NodeType::Hidden);
+    }
 
-    std::cout << '\n';
+    // Output layer (connected to last hidden layer)
+    network.emplace_back(output_size, hidden_layer_size, activation, "Output", NodeType::Output);
 
+    // Dummy input for testing
+    std::vector<double> input(input_size, 1.0); // e.g., [1.0, 1.0, ..., 1.0]
 
-    //training the two nodes
-    double out1 = input_node.activate();
-    std::cout << "Output of InputNode: " << out1 << '\n';
+    // Forward pass
+    std::vector<double> current_input = input;
+    for (auto& layer : network) {
+        layer.activate(current_input);
+        current_input.clear();
+        for (const auto& node : layer.get_nodes()) {
+            current_input.push_back(node.get_last_output());
+        }
+    }
 
-    double input_to_output = output_node.inputs[0];
-    std::cout << "Input to OutputNode: " << input_to_output << '\n';
-
-    double final_output = output_node.activate();
-    std::cout << "Final output: " << final_output << "\n\n";
-
-    output_node.backpropagate(1.0, learning_rate, saturation_threshold);
-    input_node.backpropagate(learning_rate, saturation_threshold);
-
-    std::cout << "\nAfter Backpropagation:\n";
-    input_node.print_parameters();
-    output_node.print_parameters();
-
-    std::cout << "Press Enter to exit.\n";
+    // Print final output
+    std::cout << "Network output:\n";
+    for (double out : current_input) {
+        std::cout << out << "\n";
+    }
+    std::cout << "\n" << "press any key to continue";
     std::cin.get();
+
     return 0;
 }
