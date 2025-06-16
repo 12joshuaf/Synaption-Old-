@@ -22,12 +22,15 @@ namespace nn {
 
         void print_parameters(bool verbose = true) const;
 
+        void connect_nodes(Layer* layer);
+
         const std::vector<Node>& get_nodes() const;
 
         std::vector<double> get_outputs() const;
 
-    private:
         std::vector<Node> nodes;
+
+    private:
         std::string layer_name;
     };
 
