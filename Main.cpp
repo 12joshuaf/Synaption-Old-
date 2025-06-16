@@ -1,51 +1,57 @@
 #include <iostream>
+#include <vector>
 #include "Layer.hpp"
 
 using namespace nn;
 
 int main() {
-    // Network architecture
-    const int input_size = 5;                // Example input size
-    const int hidden_layer_size = 10;
-    const int num_hidden_layers = 3;
-    const int output_size = 1;
+    std::cout << "=== Layer Test with Dummy Data ===\n";
 
-    // Example activation function (replace with your actual enum or function)
-    ActivationFunction activation = ActivationFunction::Sigmoid;
 
-    // Create layers
-    std::vector<Layer> network;
 
-    // First hidden layer (connected to input)
-    network.emplace_back(hidden_layer_size, input_size, activation, "Hidden_0", NodeType::Hidden);
+    Layer hidden_layer(2, 3, ActivationFunction::ReLU, "Hidden", NodeType::Hidden);
 
-    // Additional hidden layers
-    for (int i = 1; i < num_hidden_layers; ++i) {
-        network.emplace_back(hidden_layer_size, hidden_layer_size, activation, "Hidden_" + std::to_string(i), NodeType::Hidden);
+    // Input vector (3 inputs)
+    std::vector<double> input = { 1.0, 0.5, -0.5 };
+
+    // Activate the hidden layer
+    hidden_layer.activate(input);
+
+    // Print hidden layer outputs
+    std::cout << "Hidden layer outputs:\n";
+    for (const auto& out : hidden_layer.get_outputs()) {
+        std::cout << out << " ";
     }
+    std::cout << "\n";
 
-    // Output layer (connected to last hidden layer)
-    network.emplace_back(output_size, hidden_layer_size, activation, "Output", NodeType::Output);
+    // Create an output layer with 2 nodes (to match hidden layer output)
+    Layer output_layer(2, 2, ActivationFunction::Sigmoid, "Output", NodeType::Output);
 
-    // Dummy input for testing
-    std::vector<double> input(input_size, 1.0); // e.g., [1.0, 1.0, ..., 1.0]
+    // Activate output layer using output from hidden layer
+    output_layer.activate(hidden_layer.get_outputs());
 
-    // Forward pass
-    std::vector<double> current_input = input;
-    for (auto& layer : network) {
-        layer.activate(current_input);
-        current_input.clear();
-        for (const auto& node : layer.get_nodes()) {
-            current_input.push_back(node.get_last_output());
-        }
+    std::cout << "Output layer predictions:\n";
+    for (const auto& out : output_layer.get_outputs()) {
+        std::cout << out << " ";
     }
+    std::cout << "\n";
 
-    // Print final output
-    std::cout << "Network output:\n";
-    for (double out : current_input) {
-        std::cout << out << "\n";
-    }
-    std::cout << "\n" << "press any key to continue";
+    // Dummy targets to test backprop
+    std::vector<double> targets = { 0.0, 1.0 };
+
+    // Backpropagate through output layer
+    double learning_rate = 0.1;
+    int saturation_threshold = 1000;
+
+    std::cout << "Backpropagating output layer...\n";
+    output_layer.backpropagate(targets, learning_rate, saturation_threshold);
+
+    // Backpropagate through hidden layer
+    std::cout << "Backpropagating hidden layer...\n";
+    hidden_layer.backpropagate(learning_rate, saturation_threshold);
+
+    std::cout << "Test complete.\n";
+
     std::cin.get();
 
     return 0;
