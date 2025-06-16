@@ -1,5 +1,5 @@
 #include "Layer.hpp"
-#include <iostream> // For optional debug output
+#include <iostream> 
 #include <stdexcept>
 
 namespace nn {
@@ -63,6 +63,17 @@ namespace nn {
             outputs.push_back(node.get_last_output());
         }
         return outputs;
+    }
+
+
+
+    void Layer::connect_nodes(Layer* layer) {
+        for (Node n1 : this->nodes) {
+            for (Node n2 : layer->nodes) {
+                Node* node1 = &n2;
+                n1.point_node(node1);
+            }
+        }
     }
 
 } // namespace nn
