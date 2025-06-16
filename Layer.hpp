@@ -1,32 +1,34 @@
 #pragma once
 
-#include "Node.hpp" // Include the Node class definition
+#include "Node.hpp"
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 namespace nn {
 
     class Layer {
-    private:
-        std::vector<Node> nodes; // Vector of nodes in the layer
-        std::string layer_name;  // Name of the layer
-
     public:
-        // Constructor to create a layer with a specified number of nodes
         Layer(int num_nodes, int num_inputs_per_node, ActivationFunction activation_function,
-            const std::string& name, NodeType type);
+            const std::string& name = "", NodeType type = NodeType::Hidden);
 
-        // Method to activate all nodes in the layer
         void activate(const std::vector<double>& inputs);
 
-        // Method to backpropagate errors through the layer
+        // Overload for output layer with targets
         void backpropagate(const std::vector<double>& targets, double learning_rate, int saturation_threshold);
 
-        // Method to print parameters of all nodes in the layer
-        void print_parameters() const;
+        // Overload for hidden layer without targets
+        void backpropagate(double learning_rate, int saturation_threshold);
 
-        // Accessor for the nodes
+        void print_parameters(bool verbose = true) const;
+
         const std::vector<Node>& get_nodes() const;
+
+        std::vector<double> get_outputs() const;
+
+    private:
+        std::vector<Node> nodes;
+        std::string layer_name;
     };
 
 } // namespace nn
