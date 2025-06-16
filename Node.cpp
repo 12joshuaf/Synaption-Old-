@@ -1,221 +1,88 @@
-#include "Node.hpp"
+#pragma once
 
+#include <iostream>
+#include <vector>
+#include <random>
+#include <string>
+#include <cmath>
+#include <stdexcept>
+#include <iomanip>
 
-//activation functions, and their derrivativies
 namespace nn {
 
-    double sigmoid(double x) {
-        return 1.0 / (1.0 + std::exp(-x));
-    }
+    enum class ActivationFunction {
+        Sigmoid,
+        ReLU,
+        Tanh,
+        LeakyReLU,
+        Step
+    };
 
-    double sigmoid_derivative(double x) {
-        double sx = sigmoid(x);
-        return sx * (1.0 - sx);
-    }
+    enum class NodeType {
+        Hidden,
+        Output
+    };
 
-    double relu(double x) {
-        return x > 0 ? x : 0.0;
-    }
+    double sigmoid(double x);
+    double sigmoid_derivative(double x);
+    double relu(double x);
+    double relu_derivative(double x);
+    double tanh_activation(double x);
+    double tanh_derivative(double x);
+    double leaky_relu(double x);
+    double leaky_relu_derivative(double x);
+    double step(double x);
+    void warn_step_derivative();
 
-    double relu_derivative(double x) {
-        return x > 0 ? 1.0 : 0.0;
-    }
+    class Node {
+    private:
+        ActivationFunction activation;
+        NodeType node_type;
 
-    double tanh_activation(double x) {
-        return std::tanh(x);
-    }
+        std::string layer_name;
+        std::string node_name;
 
-    double tanh_derivative(double x) {
-        double th = std::tanh(x);
-        return 1.0 - th * th;
-    }
+        int saturation_count = 0;
 
-    double leaky_relu(double x) {
-        return x > 0 ? x : 0.01 * x;
-    }
+        double last_input_sum = 0.0;
+        double last_delta = 0.0;
+        double last_output = 0.0;
 
-    double leaky_relu_derivative(double x) {
-        return x > 0 ? 1.0 : 0.01;
-    }
+        std::vector<double> inputs_snapshot; // NEW: Inputs at time of activation
 
-    double step(double x) {
-        return x > 0 ? 1.0 : 0.0;
-    }
+        double apply_activation(double x) const;
+        double activation_derivative(double x) const;
 
-    void warn_step_derivative() {
-        std::cerr << "Warning: Step function has no usable derivative.\n";
-    }
+    public:
+        std::vector<double> weights;
+        double bias;
 
+        std::vector<Node*> points_to;
+        std::vector<Node*> inputs_from;
+        std::vector<double> inputs;
+        std::vector<double> back_inputs;
 
-    //constructor for Node, randomly set weights and bias
-    Node::Node(int num_inputs, ActivationFunction activation_input, const std::string& layer,
-        const std::string& name, NodeType type)
-        : activation(activation_input), layer_name(layer), node_name(name), node_type(type)
-    {
-        std::random_device rd;
-        std::mt19937 eng(rd());
+        Node(int num_inputs, ActivationFunction activation_input, const std::string& layer,
+            const std::string& name, NodeType type);
+        ~Node();
 
-        if (activation == ActivationFunction::ReLU || activation == ActivationFunction::LeakyReLU) {
-            std::normal_distribution<> he_dist(0.0, std::sqrt(2.0 / num_inputs));
-            weights.resize(num_inputs);
-            for (int i = 0; i < num_inputs; ++i) weights[i] = he_dist(eng);
-            bias = he_dist(eng);
-        }
-        else {
-            std::uniform_real_distribution<> distr(-1.0, 1.0);
-            weights.resize(num_inputs);
-            for (int i = 0; i < num_inputs; ++i) weights[i] = distr(eng);
-            bias = distr(eng);
-        }
-    }
+        void point_node(std::vector<Node*> node_vector);
+        void point_node(Node* node);
+        void input_nodes(std::vector<Node*> node_vector);
 
+        double get_last_delta() const;
+        double get_last_output() const;
+        std::vector<double> get_weights() const;
 
-    //destructor
-    Node::~Node() {
-        std::cout << "Destroying Node: " << node_name << " in " << layer_name << "\n";
-    }
+        double activate();
+        double activate(const std::vector<double>& inputs);
+        void print_parameters() const;
 
+        void backpropagate(double target, double learning_rate, int saturation_threshold);
+        void backpropagate(double learning_rate, int saturation_threshold);
 
-    //point the activation to other nodes for forward phase
-    void Node::point_node(std::vector<Node*> node_vector) {
-        points_to = node_vector;
-        for (Node* n : node_vector) n->inputs_from.push_back(this);
-    }
+        NodeType get_node_type();
 
-
-    //point the activation to one node
-    void Node::point_node(Node* n) {
-        points_to.push_back(n);
-        n->inputs_from.push_back(this);
-    }
-
-    void Node::input_nodes(std::vector<Node*> node_vector) {
-        inputs_from = node_vector;
-    }
-
-    double Node::get_last_delta() const { return last_delta; }
-    double Node::get_last_output() const { return last_output; }
-    std::vector<double> Node::get_weights() const { return weights; }
-
-
-    //activates with correct function
-    double Node::apply_activation(double x) const {
-        switch (activation) {
-        case ActivationFunction::Sigmoid: return sigmoid(x);
-        case ActivationFunction::ReLU: return relu(x);
-        case ActivationFunction::Tanh: return tanh_activation(x);
-        case ActivationFunction::LeakyReLU: return leaky_relu(x);
-        case ActivationFunction::Step: return step(x);
-        default: throw std::runtime_error("Unknown activation function.");
-        }
-    }
-
-    double Node::activation_derivative(double x) const {
-        switch (activation) {
-        case ActivationFunction::Sigmoid: return sigmoid_derivative(x);
-        case ActivationFunction::ReLU: return relu_derivative(x);
-        case ActivationFunction::Tanh: return tanh_derivative(x);
-        case ActivationFunction::LeakyReLU: return leaky_relu_derivative(x);
-        case ActivationFunction::Step: warn_step_derivative(); return 0.0;
-        default: throw std::runtime_error("Unknown activation function (derivative).");
-        }
-    }
-
-    //multipliesa inputs by bias, adds weight
-    double Node::activate() {
-        if (inputs.size() != weights.size()) {
-            throw std::invalid_argument("Input size does not match number of weights.");
-        }
-
-        inputs_snapshot = inputs; // SAVE inputs for backprop
-        double sum = 0.0;
-        for (size_t i = 0; i < inputs.size(); ++i) sum += inputs[i] * weights[i];
-        sum += bias;
-
-        last_input_sum = sum;
-        last_output = apply_activation(sum);
-
-        for (Node* n : points_to) n->inputs.push_back(last_output);
-        return last_output;
-    }
-
-    //activates with given inputs as arguments
-    double Node::activate(const std::vector<double>& new_inputs) {
-        if (new_inputs.size() != weights.size()) {
-            throw std::invalid_argument("Input size mismatch.");
-        }
-        inputs = new_inputs;
-        return activate();
-    }
-
-
-    //backpropogation differs for input and output layers
-
-    //backpropogation for output node
-    void Node::backpropagate(double target, double learning_rate, int saturation_threshold) {
-        if (node_type != NodeType::Output) {
-            throw std::logic_error("Only output nodes should receive targets.");
-        }
-
-        double error = target - last_output;
-        last_delta = error * activation_derivative(last_input_sum);
-
-        if (std::abs(last_delta) < 1e-6) {
-            if (++saturation_count >= saturation_threshold) {
-                std::cerr << "Saturation warning: " << node_name << " in " << layer_name << "\n";
-                saturation_count = 0;
-            }
-        }
-        else saturation_count = 0;
-
-        for (size_t i = 0; i < weights.size(); ++i) {
-            weights[i] += learning_rate * last_delta * inputs_snapshot[i]; // ← FIXED
-        }
-        bias += learning_rate * last_delta;
-
-        for (size_t i = 0; i < inputs_from.size(); ++i) {
-            inputs_from[i]->back_inputs.push_back(last_delta * weights[i]);
-        }
-    }
-
-
-    //backpropogation for hidden node
-    void Node::backpropagate(double learning_rate, int saturation_threshold) {
-        if (node_type != NodeType::Hidden) {
-            throw std::logic_error("Hidden nodes only for this method.");
-        }
-
-        double sum = 0.0;
-        for (double val : back_inputs) sum += val;
-        last_delta = sum * activation_derivative(last_input_sum);
-
-        if (std::abs(last_delta) < 1e-6) {
-            if (++saturation_count >= saturation_threshold) {
-                std::cerr << "Saturation warning: " << node_name << " in " << layer_name << "\n";
-                saturation_count = 0;
-            }
-        }
-        else saturation_count = 0;
-
-        for (size_t i = 0; i < weights.size(); ++i) {
-            weights[i] += learning_rate * last_delta * inputs_snapshot[i]; // ← FIXED
-        }
-        bias += learning_rate * last_delta;
-
-        for (size_t i = 0; i < inputs_from.size(); ++i) {
-            inputs_from[i]->back_inputs.push_back(last_delta * weights[i]);
-        }
-
-        back_inputs.clear();
-    }
-
-
-    //print parameters for the node
-    void Node::print_parameters() const {
-        std::cout << std::fixed << std::setprecision(10);
-        std::cout << "Node: " << node_name << " in " << layer_name << "\nWeights: ";
-        for (double w : weights) std::cout << w << " ";
-        std::cout << "\nBias: " << bias << "\n";
-    }
+    };
 
 } // namespace nn
