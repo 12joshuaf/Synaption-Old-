@@ -80,6 +80,9 @@ namespace nn {
 
         void backpropagate(double target, double learning_rate, int saturation_threshold);
         void backpropagate(double learning_rate, int saturation_threshold);
+
+        NodeType get_node_type();
+
     };
 
 } // namespace nn
