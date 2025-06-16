@@ -17,7 +17,7 @@ Phase 2:
 Add the C++ library into a python module that can be imported onto any machine
 
 Phase 3:
-Optimize and add functionality
+Optimize and add functionality such as:
 PCA
 S-SVM
 H-SVM
@@ -25,6 +25,6 @@ Linprog
 
 _______________________________________________________________________________________________________________________________________________________________________________________
 
-Current Progress, Phase 1 30% complete, nodes are functioning, tensors functioning, currently woring on building nueral nets
+Current Progress, Phase 1 65% complete, nodes are functioning, tensors functioning, layers functioning, currently testing net construction
 
 
