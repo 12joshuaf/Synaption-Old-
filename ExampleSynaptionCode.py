@@ -11,7 +11,7 @@ tensorArray = [] #create a list of tensors for training
 for i in range(20):
     Tensor addTensor #creates a new tensor
     addTensor.input([1,2,3,4,5,6,7,8,9,10]) #creates the inputs for the tensor
-    addTensor.output([1,2]) #creates the labels for the tensor
+    addTensor.label([1,2]) #creates the labels for the tensor
     tensorArray.append(addTensor) #adds the tensor to the list
 
 
