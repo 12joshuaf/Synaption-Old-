@@ -14,8 +14,22 @@ namespace nn {
 	public:
 		~Net();
 
+		Net();
+
+		bool isEmpty;
+		int numLayers;
+
 
 		void add_layer(int numNodes, int inputsPerNode, ActivationFunction activationType, NodeType type);
+
+		Layer* get_layer(size_t index) {
+			if (index >= layers.size()) throw std::out_of_range("Invalid layer index");
+			return layers[index];
+		}
+
+		void print_parameters(bool verbose = true) const;
+
+
 
 	private:
 		std::vector<Layer*> layers;
@@ -24,5 +38,4 @@ namespace nn {
 	};
 
 };
-
 
