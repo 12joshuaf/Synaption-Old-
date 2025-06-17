@@ -1,27 +1,41 @@
-#include "Net.hpp"
+#pragma once
+
+#include "Layer.hpp"
+#include "Tensor.hpp"
+#include <vector>
 #include <string>
+#include <stdexcept>
+
 
 namespace nn {
 
-	Net::~Net() {
-		for (Layer* layer : this->layers) {
-			delete layer;
+	class Net {
+
+	public:
+		~Net();
+
+		Net();
+
+		bool isEmpty;
+		int numLayers;
+
+
+		void add_layer(int numNodes, int inputsPerNode, ActivationFunction activationType, NodeType type);
+
+		Layer* get_layer(size_t index) {
+			if (index >= layers.size()) throw std::out_of_range("Invalid layer index");
+			return layers[index];
 		}
-	}
+
+		void print_parameters(bool verbose = true) const;
 
 
-	void Net::add_layer(int numNodes, int inputsPerNode, ActivationFunction activationType, NodeType type) {
-		std::string name = "Node" + std::to_string(layers.size());
-		Layer* addLayer = new Layer(numNodes, inputsPerNode, activationType, name, type);
-		this->layers.push_back(addLayer);
+
+	private:
+		std::vector<Layer*> layers;
 
 
-		if (this->layers.size() > 1) {
-			this->layers[this->layers.size() - 1]->connect_nodes(this->layers[this->layers.size()]);
-			std::cout << "Layer added to net";
-		}
-
-	}
-
+	};
 
 };
+
