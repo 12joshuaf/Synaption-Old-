@@ -1,7 +1,7 @@
 import synaption #import synaption module
 
 
-net1 Net() #create new neural net
+net1 = Net() #create new neural net
 net1.add_layer(10,ReLU, hidden) #add 2 hidden layers to net1 with 10 nodes, and ReLU activation
 net1.add_layer(10, ReLU, hidden)
 net1.add_layer(2, Sigmoid, output) #add output later to node1, with 2 nodes and Sigmoid activation
