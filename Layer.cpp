@@ -65,13 +65,10 @@ namespace nn {
         return outputs;
     }
 
-
-
-    void Layer::connect_nodes(Layer* layer) {
-        for (Node n1 : this->nodes) {
-            for (Node n2 : layer->nodes) {
-                Node* node1 = &n2;
-                n1.point_node(node1);
+    void Layer::connect_nodes(Layer* next_layer) {
+        for (Node& source_node : this->nodes) {
+            for (Node& target_node : next_layer->nodes) {
+                source_node.point_node(&target_node);
             }
         }
     }
