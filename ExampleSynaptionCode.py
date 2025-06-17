@@ -15,5 +15,6 @@ for i in range(20):
     tensorArray.append(addTensor) #adds the tensor to the list
 
 
-net1.train(tensorArray, 200, 0.1) #trains the net on the list of tensors, learning rate of 0.1
+net1.activate(tensorArray[1]) #forward pass through net on first tensor
+net1.backpropogate(tensorArray[1], 0.1) #backpropogation on net1 with learning rate of 0.1 on first tensor in array
 net1.save() #saves the net for later use
