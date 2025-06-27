@@ -204,4 +204,15 @@ namespace nn {
         return this->node_type;
     }
 
-} // namespace nn
+
+
+    ActivationFunction Node::get_activation_function() const {
+        return activation;
+    }
+
+    std::string Node::get_node_name() const {
+        return node_name;
+    }
+
+
+}
