@@ -23,6 +23,6 @@ Linprog
 
 _______________________________________________________________________________________________________________________________________________________________________________________
 
-Current Progress, Phase 1 70% complete, nodes are functioning, tensors functioning, layers functioning, net contruction functioning, next is saving the net
+Current Progress, Phase 1 90% complete, nodes are functioning, tensors functioning, layers functioning, net contruction functioning, net saving, next is net reading 
 
 
