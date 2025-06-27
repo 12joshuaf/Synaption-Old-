@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <fstream>
 
 
 namespace nn {
@@ -30,9 +31,14 @@ namespace nn {
 		void print_parameters(bool verbose = true) const;
 
 
-
-	private:
 		std::vector<Layer*> layers;
+
+
+		void save_net(const std::string& fileName) const;
+
+
+
+
 
 
 	};
