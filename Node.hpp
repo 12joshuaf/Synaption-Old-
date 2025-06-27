@@ -48,7 +48,7 @@ namespace nn {
         double last_delta = 0.0;
         double last_output = 0.0;
 
-        std::vector<double> inputs_snapshot; // NEW: Inputs at time of activation
+        std::vector<double> inputs_snapshot;
 
         double apply_activation(double x) const;
         double activation_derivative(double x) const;
@@ -83,6 +83,10 @@ namespace nn {
 
         NodeType get_node_type();
 
+        ActivationFunction get_activation_function() const;
+        std::string get_node_name() const;
+
+
     };
 
-} // namespace nn
+}
