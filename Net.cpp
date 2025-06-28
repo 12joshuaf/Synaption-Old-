@@ -95,7 +95,8 @@ namespace nn {
 			std::cerr << "Error: Could not open file." << std::endl;
 			return;
 		}
-s
+
+		// Clear existing layers
 		for (Layer* layer : layers) {
 			delete layer;
 		}
@@ -107,24 +108,26 @@ s
 		while (std::getline(inputFile, line)) {
 			std::vector<std::tuple<std::string, ActivationFunction, double, std::vector<double>>> nodeDataList;
 
-
+			// Parse each node in the line
 			size_t pos = 0;
 			while ((pos = line.find('(')) != std::string::npos) {
 				size_t end = line.find(')', pos);
 				if (end == std::string::npos) break;
 
 				std::string nodeStr = line.substr(pos + 1, end - pos - 1);
-				line = line.substr(end + 1);
+				line = line.substr(end + 1);  // Trim parsed part
 
 				std::istringstream ss(nodeStr);
 				std::string token;
 
-
+				// 1. Node name
 				std::getline(ss, token, ',');
 				std::string nodeName = token;
 
+				// 2. Layer label (e.g., Layer0) – skipped
 				std::getline(ss, token, ',');
 
+				// 3. Activation function
 				std::getline(ss, token, ',');
 				std::string actStr = token;
 				actStr.erase(remove_if(actStr.begin(), actStr.end(), ::isspace), actStr.end());
@@ -141,7 +144,7 @@ s
 				std::getline(ss, token, ',');
 				double bias = std::stod(token);
 
-
+				// 5. Weights
 				std::vector<double> weights;
 				while (std::getline(ss, token, ',')) {
 					weights.push_back(std::stod(token));
@@ -161,12 +164,12 @@ s
 				Layer* newLayer = new Layer(
 					numNodes,
 					static_cast<int>(inputsPerNode),
-					std::get<1>(nodeDataList[0]),
+					std::get<1>(nodeDataList[0]), // all nodes assumed to share activation
 					"Layer" + std::to_string(layerIndex),
 					type
 				);
 
-
+				// Overwrite node values (weights, bias, name)
 				for (int i = 0; i < numNodes; ++i) {
 					Node& node = const_cast<Node&>(newLayer->get_nodes()[i]);
 
@@ -187,6 +190,44 @@ s
 
 		numLayers = static_cast<int>(layers.size());
 		std::cout << "Network loaded from " << fileName << "\n";
+	}
+
+	void nn::Net::activate(const std::vector<double>& inputs) {
+		if (layers.empty()) {
+			throw std::runtime_error("Cannot activate an empty network.");
+		}
+
+		const Layer* lastLayer = layers.back();
+		if (lastLayer->layerType == NodeType::Hidden) {
+			throw std::runtime_error("Cannot activate without output layer as last layer");
+		}
+
+		std::vector<double> current_inputs = inputs;
+
+		for (Layer* layer : layers) {
+			layer->activate(current_inputs);
+			current_inputs = layer->get_outputs();
+		}
+	}
+
+	void nn::Net::backpropagate(const std::vector<double>& targets, double learning_rate, int saturation_threshold) {
+		if (layers.empty()) {
+			throw std::runtime_error("Cannot backpropagate on an empty network.");
+		}
+
+		const Layer* lastLayer = layers.back();
+		if (lastLayer->layerType == NodeType::Hidden) {
+			throw std::runtime_error("Cannot backpropogate without output layer as last layer");
+		}
+
+		// Backpropagate output layer
+		Layer* output_layer = layers.back();
+		output_layer->backpropagate(targets, learning_rate, saturation_threshold);
+
+		// Backpropagate hidden layers in reverse order
+		for (int i = static_cast<int>(layers.size()) - 2; i >= 0; --i) {
+			layers[i]->backpropagate(learning_rate, saturation_threshold);
+		}
 	}
 
 
