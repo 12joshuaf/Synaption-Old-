@@ -215,4 +215,17 @@ namespace nn {
     }
 
 
+    std::vector<double>& Node::get_weights() {
+        return weights;
+    }
+
+    std::string& Node::get_node_name() {
+        return node_name;
+    }
+
+    void Node::set_bias(double b) {
+        bias = b;
+    }
+
+
 }
