@@ -86,6 +86,11 @@ namespace nn {
         ActivationFunction get_activation_function() const;
         std::string get_node_name() const;
 
+        std::vector<double>& get_weights();
+        std::string& get_node_name();    
+        void set_bias(double b);                 
+
+
 
     };
 
