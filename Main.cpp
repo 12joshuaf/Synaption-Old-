@@ -1,45 +1,69 @@
 #include "Net.hpp"
-
-
+#include <iostream>
+#include <vector>
 
 int main() {
-    nn::Net net;
+    using namespace nn;
 
-    net.add_layer(4, 3, nn::ActivationFunction::ReLU, nn::NodeType::Hidden);
-    net.add_layer(2, 4, nn::ActivationFunction::Sigmoid, nn::NodeType::Output);
+    // Build the network
+    Net net;
 
-    std::vector<nn::Layer*> layers = {
-        net.get_layer(0),
-        net.get_layer(1)
+    // Input layer (manually using Hidden type since Input may not do much yet)
+    net.add_layer(2, 2, ActivationFunction::Sigmoid, NodeType::Hidden);
+
+    // Hidden layer
+    net.add_layer(3, 2, ActivationFunction::Sigmoid, NodeType::Hidden);
+
+    // Output layer
+    net.add_layer(1, 3, ActivationFunction::Sigmoid, NodeType::Output);
+
+    // Training data (XOR-like)
+    std::vector<std::vector<double>> inputs = {
+        {0.0, 0.0},
+        {0.0, 1.0},
+        {1.0, 0.0},
+        {1.0, 1.0}
     };
 
-    std::cout << "Before training:\n";
-    net.print_parameters();
+    std::vector<std::vector<double>> targets = {
+        {0.0},
+        {1.0},
+        {1.0},
+        {0.0}
+    };
 
-    std::vector<double> input = { 0.5, 0.1, -0.4 };
+    const double learning_rate = 0.1;
+    const int saturation_threshold = 10;
 
-    layers[0]->activate(input);
-    std::vector<double> hidden_output = layers[0]->get_outputs();
+    // Train the network
+    std::cout << "Training network...\n";
+    for (int epoch = 0; epoch < 1000; ++epoch) {
+        for (size_t i = 0; i < inputs.size(); ++i) {
+            net.activate(inputs[i]);
+            net.backpropagate(targets[i], learning_rate, saturation_threshold);
+        }
+    }
 
-    layers[1]->activate(hidden_output);
-    std::vector<double> output = layers[1]->get_outputs();
+    std::cout << "Training complete.\n\n";
 
-    std::vector<double> target = { 1.0, 0.0 };
+    // Test the network
+    std::cout << "Testing trained network:\n";
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        net.activate(inputs[i]);
+        std::vector<double> output = net.layers.back()->get_outputs();
+        std::cout << "Input: (" << inputs[i][0] << ", " << inputs[i][1] << ") -> Output: " << output[0] << "\n";
+    }
 
-    double learning_rate = 0.1;
-    int saturation_threshold = 5;
+    // Print network parameters (verbose off)
+    std::cout << "\nNetwork parameters:\n";
+    net.print_parameters(false);
 
-    layers[1]->backpropagate(target, learning_rate, saturation_threshold);
-    layers[0]->backpropagate(learning_rate, saturation_threshold);
+    // Save network
+    net.save_net("my_trained_net");
 
-    std::cout << "\nAfter training:\n";
-    net.print_parameters();
 
-    std::cout << "Backpropagation completed.\n";
-
-    std::cout << "Press any key to continue...";
+    std::cout << "Press any key to continue\n";
     std::cin.get();
 
     return 0;
 }
-
