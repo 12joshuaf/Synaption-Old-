@@ -36,9 +36,7 @@ namespace nn {
 
 		void save_net(const std::string& fileName) const;
 
-
-
-
+		void load_net(const std::string& fileName);
 
 
 	};
