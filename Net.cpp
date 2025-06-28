@@ -2,6 +2,10 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <tuple>
+
+
 
 namespace nn {
 
@@ -79,5 +83,113 @@ namespace nn {
 			std::cerr << "Error opening Net File!" << std::endl;
 		}
 	}
+
+
+	void Net::load_net(const std::string& fileName) {
+		if (!(fileName.size() >= 4 && fileName.substr(fileName.length() - 4) == ".snn")) {
+			std::cerr << "Incorrect file suffix, should be .snn\n";
+			return;
+		}
+		std::ifstream inputFile(fileName);
+		if (!inputFile.is_open()) {
+			std::cerr << "Error: Could not open file." << std::endl;
+			return;
+		}
+s
+		for (Layer* layer : layers) {
+			delete layer;
+		}
+		layers.clear();
+		numLayers = 0;
+
+		std::string line;
+		int layerIndex = 0;
+		while (std::getline(inputFile, line)) {
+			std::vector<std::tuple<std::string, ActivationFunction, double, std::vector<double>>> nodeDataList;
+
+
+			size_t pos = 0;
+			while ((pos = line.find('(')) != std::string::npos) {
+				size_t end = line.find(')', pos);
+				if (end == std::string::npos) break;
+
+				std::string nodeStr = line.substr(pos + 1, end - pos - 1);
+				line = line.substr(end + 1);
+
+				std::istringstream ss(nodeStr);
+				std::string token;
+
+
+				std::getline(ss, token, ',');
+				std::string nodeName = token;
+
+				std::getline(ss, token, ',');
+
+				std::getline(ss, token, ',');
+				std::string actStr = token;
+				actStr.erase(remove_if(actStr.begin(), actStr.end(), ::isspace), actStr.end());
+
+				ActivationFunction af;
+				if (actStr == "Sigmoid") af = ActivationFunction::Sigmoid;
+				else if (actStr == "ReLU") af = ActivationFunction::ReLU;
+				else if (actStr == "Tanh") af = ActivationFunction::Tanh;
+				else if (actStr == "LeakyReLU") af = ActivationFunction::LeakyReLU;
+				else if (actStr == "Step") af = ActivationFunction::Step;
+				else af = ActivationFunction::Sigmoid; // fallback default
+
+				// 4. Bias
+				std::getline(ss, token, ',');
+				double bias = std::stod(token);
+
+
+				std::vector<double> weights;
+				while (std::getline(ss, token, ',')) {
+					weights.push_back(std::stod(token));
+				}
+
+				nodeDataList.emplace_back(nodeName, af, bias, weights);
+			}
+
+			// Build the layer
+			if (!nodeDataList.empty()) {
+				int numNodes = static_cast<int>(nodeDataList.size());
+				size_t inputsPerNode = std::get<3>(nodeDataList[0]).size();
+				bool isLastLayer = inputFile.peek() == EOF;
+
+				NodeType type = isLastLayer ? NodeType::Output : NodeType::Hidden;
+
+				Layer* newLayer = new Layer(
+					numNodes,
+					static_cast<int>(inputsPerNode),
+					std::get<1>(nodeDataList[0]),
+					"Layer" + std::to_string(layerIndex),
+					type
+				);
+
+
+				for (int i = 0; i < numNodes; ++i) {
+					Node& node = const_cast<Node&>(newLayer->get_nodes()[i]);
+
+					node.get_weights() = std::get<3>(nodeDataList[i]);
+					node.get_node_name() = std::get<0>(nodeDataList[i]);
+					node.bias = std::get<2>(nodeDataList[i]);
+				}
+
+				// Connect previous layer to this one
+				if (!layers.empty()) {
+					layers.back()->connect_nodes(newLayer);
+				}
+
+				layers.push_back(newLayer);
+				layerIndex++;
+			}
+		}
+
+		numLayers = static_cast<int>(layers.size());
+		std::cout << "Network loaded from " << fileName << "\n";
+	}
+
+
+
 
 }
