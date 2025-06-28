@@ -13,6 +13,8 @@ namespace nn {
             nodes.emplace_back(num_inputs_per_node, activation_function, layer_name,
                 "Node_" + std::to_string(i), type);
         }
+
+        this->layerType = type;
     }
 
     void Layer::activate(const std::vector<double>& inputs) {
@@ -73,4 +75,11 @@ namespace nn {
         }
     }
 
-} // namespace nn
+
+    void Layer::add_node(Node node) {
+        this->nodes.push_back(node);
+    }
+
+
+
+} 
