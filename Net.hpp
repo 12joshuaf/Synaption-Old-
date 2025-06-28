@@ -38,6 +38,10 @@ namespace nn {
 
 		void load_net(const std::string& fileName);
 
+		void activate(const std::vector<double>& inputs);
+		void backpropagate(const std::vector<double>& targets, double learning_rate, int saturation_threshold);
+
+
 
 	};
 
