@@ -14,10 +14,10 @@ namespace nn {
 
         void activate(const std::vector<double>& inputs);
 
-        // Overload for output layer with targets
+
         void backpropagate(const std::vector<double>& targets, double learning_rate, int saturation_threshold);
 
-        // Overload for hidden layer without targets
+
         void backpropagate(double learning_rate, int saturation_threshold);
 
         void print_parameters(bool verbose = true) const;
@@ -28,7 +28,12 @@ namespace nn {
 
         std::vector<double> get_outputs() const;
 
+        void add_node(Node);
+
         std::vector<Node> nodes;
+
+        NodeType layerType;
+
 
     private:
         std::string layer_name;
