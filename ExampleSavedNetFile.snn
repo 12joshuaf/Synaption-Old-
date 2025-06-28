@@ -1,5 +1,6 @@
-(Node0_0, Layer0, ReLU, 0.1, 0.2, -0.1) (Node0_1, Layer0, ReLU, -0.3, 0.4, 0.5) (Node0_2, Layer0, ReLU, 0.0, -0.2, 0.3)
-(Node1_0, Layer1, Sigmoid, 0.7, 0.1, -0.5, 0.4) (Node1_1, Layer1, Sigmoid, -0.2, 0.3, 0.6, -0.1)
+(Node_0, Layer0, ReLU, 0.294841, 0.0235906, 1.60371, -0.155742) (Node_1, Layer0, ReLU, -0.369068, 0.33204, 0.452739, 0.0722703) (Node_2, Layer0, ReLU, 1.66257, -0.566366, -0.0534651, -2.14228) (Node_3, Layer0, ReLU, 1.51626, 1.5137, 0.054804, -1.84573)
+(Node_0, Layer1, Sigmoid, 0.488171, -0.413625, -0.250033, 0.691578, 0.15171) (Node_1, Layer1, Sigmoid, -0.84421, -0.56084, -0.435061, -0.253705, -0.43901)
+
 
 
 //this is a .snn file (Synaption neural net) which can be saved with synapytion and then read to reload the net
