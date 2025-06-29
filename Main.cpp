@@ -60,6 +60,7 @@ int main() {
 
     // Save network
     net.save_net("my_trained_net");
+    net.load_net("my_trained_net.snn");
 
 
     std::cout << "Press any key to continue\n";
