@@ -16,6 +16,6 @@ Optimize and add functionality such as, PCA, S-SVM, H-SVM, Linprog
 
 _______________________________________________________________________________________________________________________________________________________________________________________
 
-Current Progress: Phase 1 complete
+Current Progress: Phase 1 complete, working on Phase 2, PCA is functioning
 
 
